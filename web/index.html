@@ -1,0 +1,318 @@
+<html lang="en_US">
+  <head>
+    <title>Obsidian Util</title>
+    <style>
+      .collapsible {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+      }
+      .active,
+      .collapsible:hover {
+        background-color: #ccc;
+      }
+      .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
+      }
+      textarea {
+        resize: none;
+      }
+    </style>
+    <script src="libs/jquery/3.6.0/jquery.js"></script>
+    <link href="libs/jquery-datetimepicker/2.5.9/jquery.datetimepicker.css" rel="stylesheet" />
+    <script src="libs/jquery-datetimepicker/2.5.9/jquery.datetimepicker.full.min.js"></script>
+    <script src="libs/dayjs/1.10.6/dayjs.min.js"></script>
+    <script src="libs/uuid/8.3.2/uuidv4.min.js"></script>
+    <script type="text/javascript">
+      const uuid = uuidv4().replace(/-/g, '').toUpperCase();
+      let amapJsKey, amapWebKey, nowapiAppKey, nowapiSign;
+      let frontmatter = {
+        uuid,
+        path: '',
+        date: '',
+        slug: '',
+        title: '',
+        location: {
+          altitude: null,
+          latitude: 0,
+          longitude: 0,
+          address: '',
+          placename: '',
+          district: '',
+          city: '',
+          province: '',
+          country: ''
+        },
+        weather: {
+          temperature: 0,
+          humidity: 0,
+          weather: '',
+          time: '',
+          aqi: 0
+        }
+      };
+      let selectedDatetime;
+      let selectedLocation;
+
+      $(document).ready(function () {
+        console.log('document ready!');
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+
+        amapJsKey = params['amapJsKey'];
+        amapWebKey = params['amapWebKey'];
+        nowapiAppKey = params['nowapiAppKey'];
+        nowapiSign = params['nowapiSign'];
+
+        setupCollapse();
+        setupMap(params);
+        setupDatetimePicker();
+        setupFrontmatter();
+        $('#button-amap').click();
+      });
+      const setupCollapse = function () {
+        const coll = document.getElementsByClassName('collapsible');
+        let i;
+        for (i = 0; i < coll.length; i++) {
+          coll[i].addEventListener('click', function () {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content.style.display === 'block') {
+              content.style.display = 'none';
+            } else {
+              content.style.display = 'block';
+            }
+          });
+        }
+      };
+      const setupMap = function (params) {
+        const { lat, lon } = params;
+        const amap = document.getElementById('amap');
+        amap.src = `https://m.amap.com/picker/?center=${lon},${lat}&key=${amapJsKey}`;
+        const iframe = document.getElementById('amap').contentWindow;
+        document.getElementById('amap').onload = function () {
+          iframe.postMessage('hello', 'https://m.amap.com/picker/');
+        };
+        window.addEventListener(
+          'message',
+          function (e) {
+            alert(`address selected: ${JSON.stringify(e.data, null, 2)}`);
+            clickGetLocation(e.data);
+
+            $('#button-amap').click();
+            const buttonDate = $('#button-date');
+            if (!buttonDate.hasClass('active')) {
+              buttonDate.click();
+            }
+            const buttonTitleSlug = $('#button-title-slug');
+            if (!buttonTitleSlug.hasClass('active')) {
+              buttonTitleSlug.click();
+            }
+            const buttonFrontmatter = $('#button-frontmatter');
+            if (!buttonFrontmatter.hasClass('active')) {
+              buttonFrontmatter.click();
+            }
+          },
+          false
+        );
+      };
+      const setupDatetimePicker = function () {
+        const picker = $('#datetimepicker');
+        picker.datetimepicker({
+          onChangeDateTime: function (dp, $input) {
+            const selected = dayjs($input.val(), 'YYYY/MM/DD HH:mm');
+            selectedDatetime = selected;
+            frontmatter.date = selected.format('YYYY-MM-DD');
+            setupFrontmatter();
+          }
+        });
+        const now = dayjs();
+        selectedDatetime = now;
+        frontmatter.date = now.format('YYYY-MM-DD');
+        picker.val(now.format('YYYY/MM/DD HH:mm'));
+      };
+      const setupFrontmatter = function () {
+        $('#frontmatter').val(JSON.stringify(frontmatter, null, 2));
+      };
+
+      const clickGetLocation = async function (data) {
+        const { address, location, name } = data;
+        selectedLocation = location;
+        const [longitude, latitude] = location.split(',');
+
+        const res1 = await fetch(`https://restapi.amap.com/v3/geocode/regeo?key=${amapWebKey}&location=${location}&radius=100`);
+        if (res1.status !== 200) {
+          console.log(res1);
+          alert('Error in fetching amap1 "geocode/regeo"');
+          return;
+        }
+        const json1 = await res1.json();
+        console.log(`amap1 "geocode/regeo" json:`, json1);
+        const formattedAddress = json1.regeocode.formatted_address;
+
+        const res2 = await fetch(`https://restapi.amap.com/v3/geocode/geo?key=${amapWebKey}&address=${formattedAddress}`);
+        if (res2.status !== 200) {
+          console.log(res2);
+          alert('Error in fetching amap2 "geocode/geo"');
+          return;
+        }
+        const json2 = await res2.json();
+        console.log(`amap2 "geocode/geo" json:`, json2);
+        const geoCode = json2.geocodes[0];
+
+        frontmatter.location.longitude = parseFloat(longitude);
+        frontmatter.location.latitude = parseFloat(latitude);
+        frontmatter.location.address = address;
+        frontmatter.location.placename = name;
+        frontmatter.location.district = geoCode.district;
+        frontmatter.location.city = geoCode.city;
+        frontmatter.location.province = geoCode.province;
+        frontmatter.location.country = geoCode.country;
+        setupFrontmatter();
+      };
+      const clickGetWeather = async function () {
+        const now = dayjs();
+        const gap = now.diff(selectedDatetime);
+
+        if (gap < 3600 * 1000) {
+          await utilCurrentWeather();
+        } else {
+          await utilHistoryWeather();
+        }
+      };
+      const clickSetTitle = function () {
+        const title = $('#title').val();
+        if (!title) {
+          return;
+        }
+        frontmatter.title = title;
+        setupFrontmatter();
+        if (!/[\u3400-\u9FBF]/.test(title)) {
+          const slug = title.toLowerCase().replace(/\s+/g, '-');
+          clickSetSlug(slug);
+        }
+      };
+      const clickSetTitleDate = function() {
+        $('#title').val(selectedDatetime.format('YYYY-MM-DD'));
+        clickSetTitle();
+      };
+      const clickSetSlug = function (slug) {
+        if (!slug) {
+          slug = $('#slug').val();
+          if (!slug) {
+            return;
+          }
+        }
+        frontmatter.slug = slug;
+        frontmatter.path = utilGenPostPath(slug);
+        setupFrontmatter();
+      };
+      const clickSubmit = async function () {
+        await fetch('http://127.0.0.1:9292/frontmatter', {method: 'POST', body: JSON.stringify(frontmatter), headers: {'content-type': 'application/json'}});
+      };
+
+      const utilCurrentWeather = async function() {
+        if (!selectedLocation) {
+          alert('Please select location first');
+          return;
+        }
+        const res = await fetch(`https://sapi.k780.com/?app=weather.today&wgs84ll=${selectedLocation}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`);
+        if (res.status !== 200) {
+          console.log(res);
+          alert('Error in fetching nowapi "weather.today"');
+          return;
+        }
+        const json = await res.json();
+        console.log(`nowapi "weather.today" json:`, json);
+        if (json.success !== '1') {
+          alert(`Error in fetching nowapi "weather.today": ${JSON.stringify(json, null, 2)}`);
+          return;
+        }
+
+        frontmatter.weather.temperature = parseInt(json.result.temp_curr);
+        frontmatter.weather.humidity = json.result.humidity;
+        frontmatter.weather.weather = json.result.weather_curr;
+        frontmatter.weather.time = dayjs().format('HH:mm:ss');
+        frontmatter.weather.aqi = parseInt(json.result.aqi);
+        setupFrontmatter();
+      };
+      const utilHistoryWeather = async function() {
+        if (!selectedLocation) {
+          alert('Please select location first');
+          return;
+        }
+        const res = await fetch(`https://sapi.k780.com/?app=weather.history&wgs84ll=${selectedLocation}&date=${selectedDatetime.format('YYYY-MM-DD')}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`);
+        if (res.status !== 200) {
+          console.log(res);
+          alert('Error in fetching nowapi "weather.history"');
+          return;
+        }
+        const json = await res.json();
+        console.log(`nowapi "weather.history" json:`, json);
+        if (json.success !== '1') {
+          alert(`Error in fetching nowapi "weather.history": ${JSON.stringify(json, null, 2)}`);
+          return;
+        }
+
+        let diff;
+        let closest;
+        const dataList = json.result;
+        for (const data of dataList) {
+          const uptime = dayjs(data.uptime, 'YYYY-MM-DD HH:mm:ss');
+          const gap = Math.abs(selectedDatetime.diff(uptime));
+          if (!closest || gap < diff) {
+            diff = gap;
+            closest = data;
+          }
+        }
+
+        frontmatter.weather.temperature = parseInt(closest.temp);
+        frontmatter.weather.humidity = closest.humidity;
+        frontmatter.weather.weather = closest.weather;
+        frontmatter.weather.time = dayjs(closest.uptime, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
+        frontmatter.weather.aqi = parseInt(closest.aqi);
+        setupFrontmatter();
+      }
+      const utilGenPostPath = function(slug) {
+        const year = selectedDatetime.format('YYYY');
+        const month = selectedDatetime.format('MM');
+        const day = selectedDatetime.format('DD');
+
+        return `/${year}/${month}/${year + month + day}-${slug}`;
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Obsidian Util</h1>
+    <button type="button" class="collapsible" id="button-amap">Open Map</button>
+    <div class="content">
+      <iframe id="amap" style="width: 1500px; height: 100%"></iframe>
+    </div>
+    <button type="button" class="collapsible" id="button-date">Open Date</button>
+    <div class="content">
+      <label for="datetimepicker">Datetime picker</label> <input id="datetimepicker" type="text" />
+      <button onclick="clickGetWeather();">Get weather</button>
+    </div>
+    <button type="button" class="collapsible" id="button-title-slug">Title & Slug</button>
+    <div class="content">
+      <label for="title">Title</label> <input id="title" type="text" /><button onclick="clickSetTitle();">Set title</button><button onclick="clickSetTitleDate();">Set title date</button>
+      <label for="slug">Slug</label> <input id="slug" type="text" /><button onclick="clickSetSlug();">Set slug</button>
+    </div>
+    <button type="button" class="collapsible" id="button-frontmatter">Frontmatter</button>
+    <div class="content">
+      <label>
+        <textarea id="frontmatter" rows="30" style="width: 50%">123</textarea>
+      </label>
+      <button onclick="clickSubmit();">Submit</button>
+    </div>
+  </body>
+</html>
