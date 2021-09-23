@@ -13,6 +13,27 @@ Command line tools to help obsidian stuff
 
 ## Preparation
 
+Need to install [LocateMe](https://github.com/netj/LocateMe) first:
+
+```bash
+$ brew update --verbose && brew install locateme
+```
+
+Use it once: `$ locateme`, and you will get the error:
+
+```bash
+2021-08-31 10:47:01.299 locateme[32912:640457] [error code] != kCLErrorLocationUnknown: Error Domain=kCLErrorDomain Code=1 "(null)"
+2021-08-31 10:47:01.299 locateme[32912:640457] Error: Error Domain=kCLErrorDomain Code=1 "(null)"
+```
+
+Go to security setting panel, give the location access to locateme, then it should be working correctly:
+
+```bash
+$ locateme -f "{\"lat\":\"{LAT}\",\"lon\":\"{LON}\"}"
+
+{"lat":"XX.234463","lon":"XXX.482957"}
+```
+
 This tool is using:
 
 - [amap 高德地图](https://lbs.amap.com/) as the location service
@@ -47,7 +68,7 @@ $ obsidian-utils -d ~/Downloads/your/vault -c ~/Downloads/your/vault/obsidian_ut
 obsidian-utils help:
 
 ```bash
-✗ obsidian-utils -h
+$ obsidian-utils -h
 Usage: obsidian-utils [options]
 
 Obsidian utility, help to generate frontmatter, etc
