@@ -70,7 +70,7 @@ export class HttpServer {
       const path = LibPath.join(this._dest, data.path);
       const filePath = LibPath.join(path, data.slug + '.md');
 
-      shell.exec(`mkdir -p ${path}`);
+      shell.exec(`mkdir -p "${path}"`);
       await LibFs.writeFile(
         filePath,
         [
@@ -135,7 +135,7 @@ export class HttpServer {
       }
     }
 
-    shell.exec(`open ${path}`); // open created post dir
+    shell.exec(`open "${path}"`); // open created post dir
 
     // express close
     server.close(() => {

@@ -49,7 +49,7 @@ class HttpServer {
                 const data = req.body;
                 const path = LibPath.join(this._dest, data.path);
                 const filePath = LibPath.join(path, data.slug + '.md');
-                shell.exec(`mkdir -p ${path}`);
+                shell.exec(`mkdir -p "${path}"`);
                 yield LibFs.writeFile(filePath, [
                     '---',
                     `uuid: "${data.uuid}"`,
@@ -107,7 +107,7 @@ class HttpServer {
                     break;
                 }
             }
-            shell.exec(`open ${path}`); // open created post dir
+            shell.exec(`open "${path}"`); // open created post dir
             // express close
             server.close(() => {
                 process.exit(0);
