@@ -4,6 +4,7 @@ import * as express from 'express';
 import * as morgan from 'morgan';
 import { Browser } from './browser';
 import * as LibHttp from 'http';
+import * as dayjs from 'dayjs';
 
 const cors = require('cors');
 const shell = require('shelljs');
@@ -65,6 +66,7 @@ export class HttpServer {
     app.use(morgan('combined'));
 
     app.post('/frontmatter', async (req, res) => {
+      const now = dayjs();
       const data = req.body as Frontmatter;
 
       const path = LibPath.join(this._dest, data.path);
@@ -98,7 +100,10 @@ export class HttpServer {
           `  aqi: ${data.weather.aqi}`,
           '---',
           '',
-          `# ${data.title}`
+          `# ${data.title}`,
+          '',
+          '',
+          `#Y${now.format('YYYY')} #M${now.format('YYYYMM')} #M${now.format('MM')} #D${now.format('YYYYMMDD')} #D${now.format('MMDD')}`
         ].join('\n')
       );
 

@@ -15,6 +15,7 @@ const LibFs = require("fs/promises");
 const express = require("express");
 const morgan = require("morgan");
 const browser_1 = require("./browser");
+const dayjs = require("dayjs");
 const cors = require('cors');
 const shell = require('shelljs');
 class HttpServer {
@@ -46,6 +47,7 @@ class HttpServer {
             app.use(cors());
             app.use(morgan('combined'));
             app.post('/frontmatter', (req, res) => __awaiter(this, void 0, void 0, function* () {
+                const now = dayjs();
                 const data = req.body;
                 const path = LibPath.join(this._dest, data.path);
                 const filePath = LibPath.join(path, data.slug + '.md');
@@ -75,7 +77,10 @@ class HttpServer {
                     `  aqi: ${data.weather.aqi}`,
                     '---',
                     '',
-                    `# ${data.title}`
+                    `# ${data.title}`,
+                    '',
+                    '',
+                    `#Y${now.format('YYYY')} #M${now.format('YYYYMM')} #M${now.format('MM')} #D${now.format('YYYYMMDD')} #D${now.format('MMDD')}`
                 ].join('\n'));
                 yield this._shutdown(server, path);
             }));
