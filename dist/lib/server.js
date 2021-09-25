@@ -47,8 +47,8 @@ class HttpServer {
             app.use(cors());
             app.use(morgan('combined'));
             app.post('/frontmatter', (req, res) => __awaiter(this, void 0, void 0, function* () {
-                const now = dayjs();
                 const data = req.body;
+                const date = dayjs(data.date, 'YYYY-MM-DD');
                 const path = LibPath.join(this._dest, data.path);
                 const filePath = LibPath.join(path, data.slug + '.md');
                 shell.exec(`mkdir -p "${path}"`);
@@ -80,7 +80,7 @@ class HttpServer {
                     `# ${data.title}`,
                     '',
                     '',
-                    `#Y${now.format('YYYY')} #M${now.format('YYYYMM')} #M${now.format('MM')} #D${now.format('YYYYMMDD')} #D${now.format('MMDD')}`
+                    `#Y${date.format('YYYY')} #M${date.format('YYYYMM')} #M${date.format('MM')} #D${date.format('YYYYMMDD')} #D${date.format('MMDD')}`
                 ].join('\n'));
                 yield this._shutdown(server, path);
             }));

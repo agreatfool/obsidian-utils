@@ -66,8 +66,8 @@ export class HttpServer {
     app.use(morgan('combined'));
 
     app.post('/frontmatter', async (req, res) => {
-      const now = dayjs();
       const data = req.body as Frontmatter;
+      const date = dayjs(data.date, 'YYYY-MM-DD');
 
       const path = LibPath.join(this._dest, data.path);
       const filePath = LibPath.join(path, data.slug + '.md');
@@ -103,7 +103,7 @@ export class HttpServer {
           `# ${data.title}`,
           '',
           '',
-          `#Y${now.format('YYYY')} #M${now.format('YYYYMM')} #M${now.format('MM')} #D${now.format('YYYYMMDD')} #D${now.format('MMDD')}`
+          `#Y${date.format('YYYY')} #M${date.format('YYYYMM')} #M${date.format('MM')} #D${date.format('YYYYMMDD')} #D${date.format('MMDD')}`
         ].join('\n')
       );
 
