@@ -51,7 +51,9 @@ class HttpServer {
                 const date = dayjs(data.date, 'YYYY-MM-DD');
                 const path = LibPath.join(this._dest, data.path);
                 const filePath = LibPath.join(path, data.slug + '.md');
+                console.log(`mkdir -p "${path}"`);
                 shell.exec(`mkdir -p "${path}"`);
+                console.log(`write file ${filePath}`);
                 yield LibFs.writeFile(filePath, [
                     '---',
                     `uuid: "${data.uuid}"`,
