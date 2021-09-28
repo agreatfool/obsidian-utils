@@ -60,7 +60,9 @@ nowapiSign: "..."
 ```
 
 ```bash
-$ obsidian-utils -d ~/Downloads/your/vault -c ~/Downloads/your/vault/obsidian_utils_config.yaml
+$ obsidian-utils -d ~/Downloads/your/vault -c ~/Downloads/your/vault/obsidian_utils_config.yaml -a util
+$ # OR
+$ obsidian-utils -d ~/Downloads/your/vault -a index
 ```
 
 ## Others
@@ -74,9 +76,10 @@ Usage: obsidian-utils [options]
 Obsidian utility, help to generate frontmatter, etc
 
 Options:
-  -V, --version        output the version number
-  -d, --dest <dir>     directory of output destination
-  -c, --config <path>  file path of the config yaml, example could be find at:
-                       ${source_root}/config.example.yaml
-  -h, --help           display help for command
+  -V, --version          output the version number
+  -a, --action <string>  which action will be executed: util | index (default: "util")
+  -d, --dest <dir>       directory of output destination
+  -c, --config <path>    file path of the config yaml, example could be find at:
+                         ${source_root}/config.example.yaml; required if action is "util"
+  -h, --help             display help for command
 ```

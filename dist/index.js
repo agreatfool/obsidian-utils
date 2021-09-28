@@ -17,16 +17,20 @@ const server_1 = require("./lib/server");
 const browser_1 = require("./lib/browser");
 const config_1 = require("./lib/config");
 const const_1 = require("./lib/const");
+const index_generator_1 = require("./lib/index_generator");
 const shell = require('shelljs');
 const program = new commander_1.Command();
 const pkg = require('../package.json');
+const ACTIONS = ['util', 'index'];
 program
     .version(pkg.version)
     .description('Obsidian utility, help to generate frontmatter, etc')
+    .option('-a, --action <string>', 'which action will be executed: util | index', 'util')
     .requiredOption('-d, --dest <dir>', 'directory of output destination')
-    .requiredOption('-c, --config <path>', 'file path of the config yaml, example could be find at: ${source_root}/config.example.yaml')
+    .option('-c, --config <path>', 'file path of the config yaml, example could be find at: ${source_root}/config.example.yaml; required if action is "util"')
     .parse(process.argv);
 const options = program.opts();
+const CMD_ARGS_ACTION = options.action;
 const CMD_ARGS_DEST = options.dest;
 const CMD_ARGS_CONFIG = options.config;
 class ObsidianUtil {
@@ -48,11 +52,15 @@ class ObsidianUtil {
                 console.log('Need "locateme" installed');
                 process.exit(1);
             }
+            if (!ACTIONS.includes(CMD_ARGS_ACTION)) {
+                console.log('Invalid action specified!');
+                process.exit(1);
+            }
             if (!LibFs.existsSync(CMD_ARGS_DEST) || !LibFs.statSync(CMD_ARGS_DEST).isDirectory()) {
                 console.log('Invalid destination specified!');
                 process.exit(1);
             }
-            if (!LibFs.existsSync(CMD_ARGS_CONFIG) || !LibFs.statSync(CMD_ARGS_CONFIG).isFile()) {
+            if (CMD_ARGS_ACTION === 'util' && (!LibFs.existsSync(CMD_ARGS_CONFIG) || !LibFs.statSync(CMD_ARGS_CONFIG).isFile())) {
                 console.log(`Wrong config file path given: ${CMD_ARGS_CONFIG}`);
                 process.exit(1);
             }
@@ -60,11 +68,19 @@ class ObsidianUtil {
     }
     _process() {
         return __awaiter(this, void 0, void 0, function* () {
-            config_1.Config.get(CMD_ARGS_CONFIG);
-            new server_1.HttpServer(CMD_ARGS_DEST).run().catch((err) => console.log(err));
-            browser_1.Browser.get()
-                .run()
-                .catch((err) => console.log(err));
+            switch (CMD_ARGS_ACTION) {
+                case 'index':
+                    yield new index_generator_1.IndexGenerator(CMD_ARGS_DEST).run();
+                    break;
+                case 'util':
+                default:
+                    config_1.Config.get(CMD_ARGS_CONFIG);
+                    new server_1.HttpServer(CMD_ARGS_DEST).run().catch((err) => console.log(err));
+                    browser_1.Browser.get()
+                        .run()
+                        .catch((err) => console.log(err));
+                    break;
+            }
         });
     }
 }
