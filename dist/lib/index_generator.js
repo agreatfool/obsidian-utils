@@ -50,11 +50,17 @@ class IndexGenerator {
                         }
                         const filePath = LibPath.join(slugDirPath, file);
                         const fileContent = (yield LibFs.readFile(filePath)).toString().split('\n');
-                        const postData = { date: '', slug: '', title: '' };
+                        const postData = { date: '', slug: '', title: '', gallery: false };
                         for (const row of fileContent) {
                             this._findFrontmatterVal(row, 'slug', postData);
                             this._findFrontmatterVal(row, 'title', postData);
                             this._findFrontmatterVal(row, 'date', postData);
+                            if (row.startsWith('```post-gallery')) {
+                                postData.gallery = true;
+                            }
+                            else if (row.startsWith('![[')) {
+                                postData.gallery = true;
+                            }
                         }
                         if (!postData.slug || !postData.title || !postData.date) {
                             console.log(`${file} missing required frontmatter data: ${postData}`);
@@ -90,10 +96,10 @@ class IndexGenerator {
             for (const year of Object.keys(this._collected).reverse()) {
                 const yearList = this._collected[year].reverse();
                 indexContent += `### ${year} (${yearList.length} / ${totalPostsCount})\n`;
-                indexContent += '| date | title |\n';
-                indexContent += '| :-- | :-- |\n';
+                indexContent += '| date | title | gallery |\n';
+                indexContent += '| :-- | :-- | :-- |\n';
                 for (const data of yearList) {
-                    indexContent += `| ${data.date} | [${data.title}](${data.slug}) |\n`;
+                    indexContent += `| ${data.date} | [${data.title}](${data.slug}) | ${data.gallery ? '√' : 'x'} |\n`;
                 }
             }
             return LibFs.writeFile(indexFilePath, indexContent);
@@ -130,6 +136,8 @@ class IndexGenerator {
         if (row.startsWith(`${frontmatterKey}:`)) {
             const matched = row.match(pattern);
             if (matched) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 data[frontmatterKey] = matched[1];
             }
         }
