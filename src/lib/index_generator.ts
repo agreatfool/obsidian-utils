@@ -59,6 +59,8 @@ export class IndexGenerator {
             this._findFrontmatterVal(row, 'date', postData);
             if (row.startsWith('```post-gallery')) {
               postData.gallery = true;
+            } else if (row.startsWith('![]')) {
+              postData.gallery = true;
             } else if (row.startsWith('![[')) {
               postData.gallery = true;
             }
