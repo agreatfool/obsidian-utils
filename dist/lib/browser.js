@@ -25,6 +25,7 @@ class Browser {
             const configs = config_1.Config.get().getConfig();
             const geo = yield this._locateme();
             const pageUrl = `http://127.0.0.1:9191?lat=${geo.lat}&lon=${geo.lon}&amapJsKey=${configs.amapJsKey}&amapWebKey=${configs.amapWebKey}&nowapiAppKey=${configs.nowapiAppKey}&nowapiSign=${configs.nowapiSign}`;
+            console.log(`puppeteer target: ${pageUrl}`);
             if (!this._browser) {
                 this._browser = yield puppeteer.launch({ headless: false });
             }
@@ -54,7 +55,9 @@ class Browser {
                     console.log(`LocateMe.stdout: ${chunk}`);
                     // chunk: 2021-01-06 11:17:33.168 locateme[26247:2845475] Error: Error Domain=kCLErrorDomain Code=0 "(null)"
                     if (chunk.indexOf('Error') !== -1) {
-                        child.disconnect();
+                        if (child.connected) {
+                            child.disconnect();
+                        }
                         return resolve(defaultGeo);
                     }
                     let res;
@@ -65,6 +68,16 @@ class Browser {
                         res = defaultGeo; // predefined
                     }
                     return resolve(res);
+                });
+                child.stderr.on('data', function (chunk) {
+                    console.log(`LocateMe.stderr: ${chunk}`);
+                    // chunk: 2021-01-06 11:17:33.168 locateme[26247:2845475] Error: Error Domain=kCLErrorDomain Code=0 "(null)"
+                    if (chunk.indexOf('Error') !== -1) {
+                        if (child.connected) {
+                            child.disconnect();
+                        }
+                        return resolve(defaultGeo);
+                    }
                 });
             });
         });
