@@ -23,7 +23,7 @@ class Browser {
     run() {
         return __awaiter(this, void 0, void 0, function* () {
             const configs = config_1.Config.get().getConfig();
-            const geo = this._locateme();
+            const geo = yield this._locateme();
             const pageUrl = `http://127.0.0.1:9191?lat=${geo.lat}&lon=${geo.lon}&amapJsKey=${configs.amapJsKey}&amapWebKey=${configs.amapWebKey}&nowapiAppKey=${configs.nowapiAppKey}&nowapiSign=${configs.nowapiSign}`;
             if (!this._browser) {
                 this._browser = yield puppeteer.launch({ headless: false });
@@ -46,15 +46,28 @@ class Browser {
         });
     }
     _locateme() {
-        let res;
-        const stdout = shell.exec('locateme -f "{\\"lat\\":\\"{LAT}\\",\\"lon\\":\\"{LON}\\"}"').stdout.replace('\n', '');
-        try {
-            res = JSON.parse(stdout);
-        }
-        catch (err) {
-            res = { lat: '31.234464', lon: '121.482956' }; // predefined
-        }
-        return res;
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => {
+                const defaultGeo = { lat: '31.234464', lon: '121.482956' };
+                const child = shell.exec('locateme -f "{\\"lat\\":\\"{LAT}\\",\\"lon\\":\\"{LON}\\"}"', { async: true });
+                child.stdout.on('data', function (chunk) {
+                    console.log(`LocateMe.stdout: ${chunk}`);
+                    // chunk: 2021-01-06 11:17:33.168 locateme[26247:2845475] Error: Error Domain=kCLErrorDomain Code=0 "(null)"
+                    if (chunk.indexOf('Error') !== -1) {
+                        child.disconnect();
+                        return resolve(defaultGeo);
+                    }
+                    let res;
+                    try {
+                        res = JSON.parse(chunk);
+                    }
+                    catch (err) {
+                        res = defaultGeo; // predefined
+                    }
+                    return resolve(res);
+                });
+            });
+        });
     }
 }
 exports.Browser = Browser;
