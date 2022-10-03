@@ -12,9 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IndexGenerator = void 0;
 const LibFs = require("fs/promises");
 const LibPath = require("path");
+const dayjs = require("dayjs");
+const weekOfYear = require("dayjs/plugin/weekOfYear");
 const util_1 = require("./util");
 const const_1 = require("./const");
 const shell = require('shelljs');
+dayjs.extend(weekOfYear);
 const IGNORE_LIST = ['.DS_Store', '.obsidian'];
 class IndexGenerator {
     constructor(dest) {
@@ -50,7 +53,7 @@ class IndexGenerator {
                         }
                         const filePath = LibPath.join(slugDirPath, file);
                         const fileContent = (yield LibFs.readFile(filePath)).toString().split('\n');
-                        const postData = { date: '', slug: '', title: '', gallery: false };
+                        const postData = { date: '', weekNum: 1, dayOfWeek: 1, slug: '', title: '', gallery: false };
                         for (const row of fileContent) {
                             this._findFrontmatterVal(row, 'slug', postData);
                             this._findFrontmatterVal(row, 'title', postData);
@@ -69,6 +72,11 @@ class IndexGenerator {
                             console.log(`${file} missing required frontmatter data: ${postData}`);
                             continue;
                         }
+                        const dayjsInstance = dayjs(postData.date);
+                        // dayOfWeek 1-7, Sunday is 7 (previously 0 from dayjs.day())
+                        postData.dayOfWeek = dayjsInstance.day() === 0 ? 7 : dayjsInstance.day();
+                        // weekNum of the year, Sunday would be set to previous week rather than the beginning of the week
+                        postData.weekNum = postData.dayOfWeek === 7 ? dayjsInstance.week() - 1 : dayjsInstance.week();
                         if (!(year in this._collected)) {
                             this._collected[year] = [];
                         }
@@ -99,10 +107,10 @@ class IndexGenerator {
             for (const year of Object.keys(this._collected).reverse()) {
                 const yearList = this._collected[year].reverse();
                 indexContent += `### ${year} (${yearList.length} / ${totalPostsCount})\n`;
-                indexContent += '| date | title | gallery |\n';
-                indexContent += '| :-- | :-- | :-- |\n';
+                indexContent += '| date | weekOfYear | dayOfWeek | title | gallery |\n';
+                indexContent += '| :-- | :-- | :-- | :-- | :-- |\n';
                 for (const data of yearList) {
-                    indexContent += `| ${data.date} | [${data.title}](${data.slug}) | ${data.gallery ? '√' : 'x'} |\n`;
+                    indexContent += `| ${data.date} | ${data.weekNum} | ${data.dayOfWeek} | [${data.title}](${data.slug}) | ${data.gallery ? '√' : 'x'} |\n`;
                 }
             }
             return LibFs.writeFile(indexFilePath, indexContent);
