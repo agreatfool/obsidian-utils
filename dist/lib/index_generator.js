@@ -54,18 +54,38 @@ class IndexGenerator {
                         const filePath = LibPath.join(slugDirPath, file);
                         const fileContent = (yield LibFs.readFile(filePath)).toString().split('\n');
                         const postData = { date: '', weekNum: 1, dayOfWeek: 1, slug: '', title: '', gallery: false };
-                        for (const row of fileContent) {
+                        for (let i = 0; i < fileContent.length; i++) {
+                            const row = fileContent[i];
                             this._findFrontmatterVal(row, 'slug', postData);
                             this._findFrontmatterVal(row, 'title', postData);
                             this._findFrontmatterVal(row, 'date', postData);
-                            if (row.startsWith('```post-gallery')) {
-                                postData.gallery = true;
-                            }
-                            else if (row.startsWith('![]')) {
+                            if (row.startsWith('![]')) {
                                 postData.gallery = true;
                             }
                             else if (row.startsWith('![[')) {
                                 postData.gallery = true;
+                            }
+                            else if (row.startsWith('```post-gallery')) {
+                                // check gallery content
+                                const galleryName = fileContent[i + 1].replace('name:', '').trim();
+                                const assetsPath = LibPath.join(slugDirPath, const_1.ASSETS_DIR);
+                                const galleryPath = LibPath.join(assetsPath, galleryName);
+                                try {
+                                    const stat = yield LibFs.stat(galleryPath);
+                                    if (stat && stat.isDirectory()) {
+                                        const galleryFiles = yield this._readdir(galleryPath);
+                                        if (galleryFiles.length === 1 && galleryFiles[0].match(/\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.jpg/) !== null) {
+                                            // only AQI screenshot image inside the gallery, should not mark gallery as true
+                                            // e.g 2024-01-20_23-20-01.jpg
+                                        }
+                                        else {
+                                            postData.gallery = true;
+                                        }
+                                    }
+                                }
+                                catch (err) {
+                                    console.log(`Reading gallery path failed: ${galleryPath}`, err);
+                                }
                             }
                         }
                         if (!postData.slug || !postData.title || !postData.date) {
