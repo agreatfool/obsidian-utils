@@ -1,6 +1,6 @@
 {
   "name": "@agreatfool/obsidian-utils",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "obsidian utility tool, help to generate frontmatter, etc",
   "main": "dist/index.js",
   "scripts": {
