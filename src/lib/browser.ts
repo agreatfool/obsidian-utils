@@ -1,12 +1,6 @@
 import * as puppeteer from 'puppeteer';
 import { Config } from './config';
-
-const shell = require('shelljs');
-
-interface Location {
-  lat: string | number;
-  lon: string | number;
-}
+import { locateme } from './util';
 
 export class Browser {
   private static _instance: Browser;
@@ -20,8 +14,8 @@ export class Browser {
   private _browser: puppeteer.Browser;
 
   public async run(): Promise<void> {
-    const configs = Config.get().getConfig();
-    const geo = await this._locateme();
+    const configs = Config.load().getConfig();
+    const geo = await locateme();
     const pageUrl = `http://127.0.0.1:9191?lat=${geo.lat}&lon=${geo.lon}&amapJsKey=${configs.amapJsKey}&amapWebKey=${configs.amapWebKey}&nowapiAppKey=${configs.nowapiAppKey}&nowapiSign=${configs.nowapiSign}`;
     console.log(`puppeteer target: ${pageUrl}`);
 
@@ -42,40 +36,5 @@ export class Browser {
       await this._browser.close();
       this._browser = undefined;
     }
-  }
-
-  private async _locateme(): Promise<Location> {
-    return new Promise((resolve) => {
-      const defaultGeo: Location = { lat: '31.234464', lon: '121.482956' };
-
-      const child = shell.exec('locateme -f "{\\"lat\\":\\"{LAT}\\",\\"lon\\":\\"{LON}\\"}"', { async: true });
-      child.stdout.on('data', function (chunk) {
-        console.log(`LocateMe.stdout: ${chunk}`);
-        // chunk: 2021-01-06 11:17:33.168 locateme[26247:2845475] Error: Error Domain=kCLErrorDomain Code=0 "(null)"
-        if (chunk.indexOf('Error') !== -1) {
-          if (child.connected) {
-            child.disconnect();
-          }
-          return resolve(defaultGeo);
-        }
-        let res: Location;
-        try {
-          res = JSON.parse(chunk);
-        } catch (err) {
-          res = defaultGeo; // predefined
-        }
-        return resolve(res);
-      });
-      child.stderr.on('data', function (chunk) {
-        console.log(`LocateMe.stderr: ${chunk}`);
-        // chunk: 2021-01-06 11:17:33.168 locateme[26247:2845475] Error: Error Domain=kCLErrorDomain Code=0 "(null)"
-        if (chunk.indexOf('Error') !== -1) {
-          if (child.connected) {
-            child.disconnect();
-          }
-          return resolve(defaultGeo);
-        }
-      });
-    });
   }
 }

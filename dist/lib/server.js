@@ -11,11 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpServer = void 0;
 const LibPath = require("path");
-const LibFs = require("fs/promises");
 const express = require("express");
 const morgan = require("morgan");
 const browser_1 = require("./browser");
-const dayjs = require("dayjs");
+const util_1 = require("./util");
 const cors = require('cors');
 const shell = require('shelljs');
 class HttpServer {
@@ -46,45 +45,10 @@ class HttpServer {
             app.use(express.urlencoded({ extended: true }));
             app.use(cors());
             app.use(morgan('combined'));
-            app.post('/frontmatter', (req, res) => __awaiter(this, void 0, void 0, function* () {
+            app.post('/frontmatter', (req) => __awaiter(this, void 0, void 0, function* () {
                 const data = req.body;
-                const date = dayjs(data.date, 'YYYY-MM-DD');
-                const path = LibPath.join(this._dest, data.path);
-                const filePath = LibPath.join(path, data.slug + '.md');
-                console.log(`mkdir -p "${path}"`);
-                shell.exec(`mkdir -p "${path}"`);
-                console.log(`write file ${filePath}`);
-                yield LibFs.writeFile(filePath, [
-                    '---',
-                    `uuid: "${data.uuid}"`,
-                    `path: "${data.path}"`,
-                    `date: "${data.date}"`,
-                    `slug: "${data.slug}"`,
-                    `title: "${data.title}"`,
-                    `location:`,
-                    `  altitude: ${data.location.altitude}`,
-                    `  latitude: ${data.location.latitude}`,
-                    `  longitude: ${data.location.longitude}`,
-                    `  address: "${data.location.address}"`,
-                    `  placename: "${data.location.placename}"`,
-                    `  district: "${data.location.district}"`,
-                    `  city: "${data.location.city}"`,
-                    `  province: "${data.location.province}"`,
-                    `  country: "${data.location.country}"`,
-                    `weather:`,
-                    `  temperature: ${data.weather.temperature}`,
-                    `  humidity: "${data.weather.humidity}"`,
-                    `  weather: "${data.weather.weather}"`,
-                    `  time: "${data.weather.time}"`,
-                    `  aqi: ${data.weather.aqi}`,
-                    '---',
-                    '',
-                    `# ${data.title}`,
-                    '',
-                    '',
-                    `#Y${date.format('YYYY')} #M${date.format('YYYYMM')} #M${date.format('MM')} #D${date.format('YYYYMMDD')} #D${date.format('MMDD')}`
-                ].join('\n'));
-                yield this._shutdown(server, path);
+                yield (0, util_1.generateDoc)(this._dest, data);
+                yield this._shutdown(server, LibPath.join(this._dest, data.path));
             }));
             server = app.listen(9292, () => {
                 console.info('Listening on http://localhost:9292/');
