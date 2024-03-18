@@ -73,7 +73,7 @@ class ObsidianUtil {
                 console.log('For action "diary", -t datetime input is required');
                 process.exit(1);
             }
-            if (CMD_ARGS_ACTION === 'diary' && !(0, util_1.isValidDateTime)(CMD_ARGS_TIME)) {
+            if (CMD_ARGS_ACTION === 'diary' && !util_1.isValidDateTime(CMD_ARGS_TIME)) {
                 console.log(`Wrong datetime given: ${CMD_ARGS_TIME}`);
                 process.exit(1);
             }

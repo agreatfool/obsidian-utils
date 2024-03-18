@@ -47,7 +47,7 @@ class HttpServer {
             app.use(morgan('combined'));
             app.post('/frontmatter', (req) => __awaiter(this, void 0, void 0, function* () {
                 const data = req.body;
-                yield (0, util_1.generateDoc)(this._dest, data);
+                yield util_1.generateDoc(this._dest, data);
                 yield this._shutdown(server, LibPath.join(this._dest, data.path));
             }));
             server = app.listen(9292, () => {
