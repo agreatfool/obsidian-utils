@@ -3,6 +3,7 @@ import * as LibPath from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { Frontmatter, FrontmatterWeather, generateDoc, getWeather, locateme } from './util';
 import { Config } from './config';
+import { IndexGenerator } from './index_generator';
 
 const shell = require('shelljs');
 
@@ -53,6 +54,11 @@ export class DiaryNoPickerGenerator {
 
     await generateDoc(this._dest, data);
 
-    shell.exec(`open "${LibPath.join(this._dest, data.path)}"`); // open created post dir
+    const docDir = LibPath.join(this._dest, data.path);
+    shell.exec(`mkdir -p ${LibPath.join(docDir, 'assets/gallery00')}`); // create default gallery dir, which is a must have dir for diary
+    shell.exec(`open "${docDir}"`); // open created post dir
+
+    // run indexing command as well
+    await new IndexGenerator(this._dest).run();
   }
 }
