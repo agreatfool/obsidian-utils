@@ -1,39 +1,12 @@
 import * as LibPath from 'path';
-import * as LibFs from 'fs/promises';
 import * as express from 'express';
 import * as morgan from 'morgan';
 import { Browser } from './browser';
 import * as LibHttp from 'http';
-import * as dayjs from 'dayjs';
+import { Frontmatter, generateDoc } from './util';
 
 const cors = require('cors');
 const shell = require('shelljs');
-
-interface Frontmatter {
-  uuid: string;
-  path: string;
-  date: string;
-  slug: string;
-  title: string;
-  location: {
-    altitude: number;
-    latitude: number;
-    longitude: number;
-    address: string;
-    placename: string;
-    district: string;
-    city: string;
-    province: string;
-    country: string;
-  };
-  weather: {
-    temperature: number;
-    humidity: number;
-    weather: string;
-    time: string;
-    aqi: number;
-  };
-}
 
 export class HttpServer {
   private readonly _dest: string;
@@ -65,51 +38,10 @@ export class HttpServer {
     app.use(cors());
     app.use(morgan('combined'));
 
-    app.post('/frontmatter', async (req, res) => {
+    app.post('/frontmatter', async (req) => {
       const data = req.body as Frontmatter;
-      const date = dayjs(data.date, 'YYYY-MM-DD');
-
-      const path = LibPath.join(this._dest, data.path);
-      const filePath = LibPath.join(path, data.slug + '.md');
-
-      console.log(`mkdir -p "${path}"`);
-      shell.exec(`mkdir -p "${path}"`);
-      console.log(`write file ${filePath}`);
-      await LibFs.writeFile(
-        filePath,
-        [
-          '---',
-          `uuid: "${data.uuid}"`,
-          `path: "${data.path}"`,
-          `date: "${data.date}"`,
-          `slug: "${data.slug}"`,
-          `title: "${data.title}"`,
-          `location:`,
-          `  altitude: ${data.location.altitude}`,
-          `  latitude: ${data.location.latitude}`,
-          `  longitude: ${data.location.longitude}`,
-          `  address: "${data.location.address}"`,
-          `  placename: "${data.location.placename}"`,
-          `  district: "${data.location.district}"`,
-          `  city: "${data.location.city}"`,
-          `  province: "${data.location.province}"`,
-          `  country: "${data.location.country}"`,
-          `weather:`,
-          `  temperature: ${data.weather.temperature}`,
-          `  humidity: "${data.weather.humidity}"`,
-          `  weather: "${data.weather.weather}"`,
-          `  time: "${data.weather.time}"`,
-          `  aqi: ${data.weather.aqi}`,
-          '---',
-          '',
-          `# ${data.title}`,
-          '',
-          '',
-          `#Y${date.format('YYYY')} #M${date.format('YYYYMM')} #M${date.format('MM')} #D${date.format('YYYYMMDD')} #D${date.format('MMDD')}`
-        ].join('\n')
-      );
-
-      await this._shutdown(server, path);
+      await generateDoc(this._dest, data);
+      await this._shutdown(server, LibPath.join(this._dest, data.path));
     });
 
     server = app.listen(9292, () => {

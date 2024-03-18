@@ -10,7 +10,7 @@ interface ConfigObject {
 
 export class Config {
   private static _instance: Config;
-  public static get(path?: string): Config {
+  public static load(path?: string): Config {
     if (!Config._instance) {
       if (!path) {
         throw new Error('Config instance not found, params are required in this case');

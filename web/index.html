@@ -100,6 +100,7 @@
         amap.src = `https://m.amap.com/picker/?center=${lon},${lat}&key=${amapJsKey}`;
         const iframe = document.getElementById('amap').contentWindow;
         document.getElementById('amap').onload = function () {
+          console.log('onload');
           iframe.postMessage('hello', 'https://m.amap.com/picker/');
         };
         window.addEventListener(
@@ -171,8 +172,8 @@
 
         frontmatter.location.longitude = parseFloat(longitude);
         frontmatter.location.latitude = parseFloat(latitude);
-        frontmatter.location.address = address;
-        frontmatter.location.placename = name;
+        frontmatter.location.address = formattedAddress;
+        frontmatter.location.placename = formattedAddress;
         frontmatter.location.district = geoCode.district;
         frontmatter.location.city = geoCode.city;
         frontmatter.location.province = geoCode.province;
@@ -201,7 +202,7 @@
           clickSetSlug(slug);
         }
       };
-      const clickSetTitleDate = function() {
+      const clickSetTitleDate = function () {
         $('#title').val(selectedDatetime.format('YYYY-MM-DD'));
         clickSetTitle();
       };
@@ -217,15 +218,21 @@
         setupFrontmatter();
       };
       const clickSubmit = async function () {
-        await fetch('http://127.0.0.1:9292/frontmatter', {method: 'POST', body: JSON.stringify(frontmatter), headers: {'content-type': 'application/json'}});
+        await fetch('http://127.0.0.1:9292/frontmatter', {
+          method: 'POST',
+          body: JSON.stringify(frontmatter),
+          headers: { 'content-type': 'application/json' }
+        });
       };
 
-      const utilCurrentWeather = async function() {
+      const utilCurrentWeather = async function () {
         if (!selectedLocation) {
           alert('Please select location first');
           return;
         }
-        const res = await fetch(`https://sapi.k780.com/?app=weather.today&wgs84ll=${selectedLocation}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`);
+        const res = await fetch(
+          `https://sapi.k780.com/?app=weather.today&wgs84ll=${selectedLocation}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`
+        );
         if (res.status !== 200) {
           console.log(res);
           alert('Error in fetching nowapi "weather.today"');
@@ -245,12 +252,16 @@
         frontmatter.weather.aqi = parseInt(json.result.aqi);
         setupFrontmatter();
       };
-      const utilHistoryWeather = async function() {
+      const utilHistoryWeather = async function () {
         if (!selectedLocation) {
           alert('Please select location first');
           return;
         }
-        const res = await fetch(`https://sapi.k780.com/?app=weather.history&wgs84ll=${selectedLocation}&date=${selectedDatetime.format('YYYY-MM-DD')}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`);
+        const res = await fetch(
+          `https://sapi.k780.com/?app=weather.history&wgs84ll=${selectedLocation}&date=${selectedDatetime.format(
+            'YYYY-MM-DD'
+          )}&appkey=${nowapiAppKey}&sign=${nowapiSign}&format=json`
+        );
         if (res.status !== 200) {
           console.log(res);
           alert('Error in fetching nowapi "weather.history"');
@@ -281,8 +292,8 @@
         frontmatter.weather.time = dayjs(closest.uptime, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
         frontmatter.weather.aqi = parseInt(closest.aqi);
         setupFrontmatter();
-      }
-      const utilGenPostPath = function(slug) {
+      };
+      const utilGenPostPath = function (slug) {
         const year = selectedDatetime.format('YYYY');
         const month = selectedDatetime.format('MM');
         const day = selectedDatetime.format('DD');
@@ -304,8 +315,11 @@
     </div>
     <button type="button" class="collapsible" id="button-title-slug">Title & Slug</button>
     <div class="content">
-      <label for="title">Title</label> <input id="title" type="text" /><button onclick="clickSetTitle();">Set title</button><button onclick="clickSetTitleDate();">Set title date</button>
-      <label for="slug">Slug</label> <input id="slug" type="text" /><button onclick="clickSetSlug();">Set slug</button>
+      <label for="title">Title</label> <input id="title" type="text" />
+      <button onclick="clickSetTitle();">Set title</button>
+      <button onclick="clickSetTitleDate();">Set title date</button>
+      <label for="slug">Slug</label> <input id="slug" type="text" />
+      <button onclick="clickSetSlug();">Set slug</button>
     </div>
     <button type="button" class="collapsible" id="button-frontmatter">Frontmatter</button>
     <div class="content">

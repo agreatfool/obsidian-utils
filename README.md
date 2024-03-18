@@ -76,10 +76,13 @@ Usage: obsidian-utils [options]
 Obsidian utility, help to generate frontmatter, etc
 
 Options:
-  -V, --version          output the version number
-  -a, --action <string>  which action will be executed: util | index (default: "util")
-  -d, --dest <dir>       directory of output destination
-  -c, --config <path>    file path of the config yaml, example could be find at:
-                         ${source_root}/config.example.yaml; required if action is "util"
-  -h, --help             display help for command
+  -V, --version            output the version number
+  -a, --action <string>    which action will be executed: util | diary | index
+  -t, --datetime <string>  the datetime of the document to be created, format:
+                           'YYYY-MM-DD HH:mm:ss'
+  -d, --dest <dir>         directory of output destination
+  -c, --config <path>      file path of the config yaml, example could be find at:
+                           ${source_root}/config.example.yaml; required if action is
+                           "util | diray"
+  -h, --help               display help for command
 ```

@@ -8,7 +8,7 @@ class Config {
         const file = LibFs.readFileSync(path).toString();
         this._yaml = YAML.parse(file);
     }
-    static get(path) {
+    static load(path) {
         if (!Config._instance) {
             if (!path) {
                 throw new Error('Config instance not found, params are required in this case');
