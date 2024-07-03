@@ -155,7 +155,7 @@ class IndexGenerator {
             if (year === const_1.INDEX_DIR) {
                 continue; // skip index dir itself
             }
-            if (!util_1.isDateStrValid(year, 'YYYY')) {
+            if (!(0, util_1.isDateStrValid)(year, 'YYYY')) {
                 allValid = false;
                 console.log(`Invalid year: ${year}`);
             }

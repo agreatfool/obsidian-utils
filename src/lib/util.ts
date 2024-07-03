@@ -187,18 +187,34 @@ interface WeatherHistoryAPIRes {
   result: WeatherHistoryAPIResRow[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getWeather = async (location: string, key: string, sign: string, datetime: string): Promise<FrontmatterWeather> => {
+  // 2024-07-03
+  // As the weather API failed, I will drop this data.
+  // The weather data store in the metadata part never been read till now, it's a bit useless.
+  // Maybe I will switch to some new weather service later, who knows.
+  /*
   const now = dayjs();
   const gap = now.diff(datetime);
-
+  
   if (gap < 3600 * 1000) {
     return getWeatherNow(location, key, sign);
   } else {
     return getWeatherHistory(location, key, sign, datetime);
   }
+  */
+
+  return {
+    temperature: '',
+    humidity: '',
+    weather: '',
+    time: '',
+    aqi: ''
+  };
 };
 
 // location: longitude,latitude
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getWeatherNow = async function (location: string, key: string, sign: string): Promise<FrontmatterWeather> {
   const url = `https://sapi.k780.com/?app=weather.today&wgs84ll=${location}&appkey=${key}&sign=${sign}&format=json`;
   const res = await fetch(url);
@@ -223,6 +239,7 @@ const getWeatherNow = async function (location: string, key: string, sign: strin
   return weather;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getWeatherHistory = async function (location: string, key: string, sign: string, datetime: string): Promise<FrontmatterWeather> {
   const selectedDatetime = dayjs(datetime);
   const url = `https://sapi.k780.com/?app=weather.history&wgs84ll=${location}&date=${selectedDatetime.format(

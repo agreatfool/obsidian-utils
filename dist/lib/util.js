@@ -100,18 +100,33 @@ const locateme = () => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.locateme = locateme;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getWeather = (location, key, sign, datetime) => __awaiter(void 0, void 0, void 0, function* () {
+    // 2024-07-03
+    // As the weather API failed, I will drop this data.
+    // The weather data store in the metadata part never been read till now, it's a bit useless.
+    // Maybe I will switch to some new weather service later, who knows.
+    /*
     const now = dayjs();
     const gap = now.diff(datetime);
+    
     if (gap < 3600 * 1000) {
-        return getWeatherNow(location, key, sign);
+      return getWeatherNow(location, key, sign);
+    } else {
+      return getWeatherHistory(location, key, sign, datetime);
     }
-    else {
-        return getWeatherHistory(location, key, sign, datetime);
-    }
+    */
+    return {
+        temperature: '',
+        humidity: '',
+        weather: '',
+        time: '',
+        aqi: ''
+    };
 });
 exports.getWeather = getWeather;
 // location: longitude,latitude
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getWeatherNow = function (location, key, sign) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `https://sapi.k780.com/?app=weather.today&wgs84ll=${location}&appkey=${key}&sign=${sign}&format=json`;
@@ -134,6 +149,7 @@ const getWeatherNow = function (location, key, sign) {
         return weather;
     });
 };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getWeatherHistory = function (location, key, sign, datetime) {
     return __awaiter(this, void 0, void 0, function* () {
         const selectedDatetime = dayjs(datetime);

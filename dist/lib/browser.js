@@ -23,7 +23,7 @@ class Browser {
     run() {
         return __awaiter(this, void 0, void 0, function* () {
             const configs = config_1.Config.load().getConfig();
-            const geo = yield util_1.locateme();
+            const geo = yield (0, util_1.locateme)();
             const pageUrl = `http://127.0.0.1:9191?lat=${geo.lat}&lon=${geo.lon}&amapJsKey=${configs.amapJsKey}&amapWebKey=${configs.amapWebKey}&nowapiAppKey=${configs.nowapiAppKey}&nowapiSign=${configs.nowapiSign}`;
             console.log(`puppeteer target: ${pageUrl}`);
             if (!this._browser) {
