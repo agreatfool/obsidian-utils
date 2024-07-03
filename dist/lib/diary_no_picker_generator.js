@@ -25,14 +25,14 @@ class DiaryNoPickerGenerator {
     run() {
         return __awaiter(this, void 0, void 0, function* () {
             const config = config_1.Config.load().getConfig();
-            const geo = yield util_1.locateme();
+            const geo = yield (0, util_1.locateme)();
             const year = this._dayjs.format('YYYY');
             const month = this._dayjs.format('MM');
             const dateShort = this._dayjs.format('YYYYMMDD');
             const date = this._dayjs.format('YYYY-MM-DD');
-            const weather = yield util_1.getWeather(`${geo.lon},${geo.lat}`, config.nowapiAppKey, config.nowapiSign, this._dayjs.format('YYYY-MM-DD HH:mm:ss'));
+            const weather = yield (0, util_1.getWeather)(`${geo.lon},${geo.lat}`, config.nowapiAppKey, config.nowapiSign, this._dayjs.format('YYYY-MM-DD HH:mm:ss'));
             const data = {
-                uuid: uuid_1.v4().replace(/-/g, '').toUpperCase(),
+                uuid: (0, uuid_1.v4)().replace(/-/g, '').toUpperCase(),
                 path: `/${year}/${month}/${dateShort}-${date}`,
                 date,
                 slug: date,
@@ -50,7 +50,7 @@ class DiaryNoPickerGenerator {
                 },
                 weather
             };
-            yield util_1.generateDoc(this._dest, data);
+            yield (0, util_1.generateDoc)(this._dest, data);
             const docDir = LibPath.join(this._dest, data.path);
             shell.exec(`mkdir -p ${LibPath.join(docDir, 'assets/gallery00')}`); // create default gallery dir, which is a must have dir for diary
             shell.exec(`open "${docDir}"`); // open created post dir
